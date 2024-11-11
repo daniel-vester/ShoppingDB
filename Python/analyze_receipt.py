@@ -67,16 +67,12 @@ def analyze_receipt(image, date, purchase_id, model, processor):
                 },
                 {"type": "text", "text": """This image is a receipt from a German Supermarket. 
                 I want you to extract the following Information: 
-                Extract all bought items. 
-                For each item create a new string with the following information:
-                Name of Product,  Amount bought
-                The amount for the product is on the line below it.
+                Extract all products that are written on the left column. If a product repeats do extract the repeated product. Ignore the amounts.
                 Do note that the receipt can be skewed or wrinkled. 
-                Also add Pfand as their own item.
-                Read every single entry in the list, including the very last one.
-                If only one instance of a product was bought, there is no amount given, so write a 1 into the Amount bought attribute.
-                Separate these attributes by , and put a square bracket around each product. The result should be a
-                python array of arrays. Do not add any aditional text. The result should only be the array of arrays. Do not hallucinate.
+                Put all products into a python list. Separate them by , and enclose them with square brackets.
+                Also add Pfand or Leergut as their own products
+                ead every single entry in the list, including the very last one.
+                Do not add any aditional text. The result should only be the array. Do not hallucinate.
                 """},
             ],
         }

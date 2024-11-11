@@ -18,7 +18,7 @@ all_images = [join(path,f) for f in listdir(path) if isfile(join(path, f))]
 batch_size = 10
 
 for i in range(0, len(all_images), batch_size):
-    print("Batch " + str(i))
+    print("Batch " + str((i/10) + 1))
 
     model = Qwen2VLForConditionalGeneration.from_pretrained(
         "Qwen/Qwen2-VL-7B-Instruct", torch_dtype="auto", device_map="auto"
@@ -42,3 +42,6 @@ for i in range(0, len(all_images), batch_size):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+
+
+print(result)
