@@ -68,11 +68,12 @@ def analyze_receipt(image, date, purchase_id, model, processor):
                 {"type": "text", "text": """This image is a receipt from a German Supermarket. 
                 I want you to extract the following Information: 
                 Extract all products that are written on the left column. If a product repeats do extract the repeated product. Ignore the amounts.
+                Ignore rows where amounts of items bought are given.
                 Do note that the receipt can be skewed or wrinkled. 
-                Put all products into a python list. Separate them by , and enclose them with square brackets.
+                Put all products with "" quotes around the name into a python list. Separate them by , and enclose them with square brackets.
                 Also add Pfand or Leergut as their own products
-                ead every single entry in the list, including the very last one.
-                Do not add any aditional text. The result should only be the array. Do not hallucinate.
+                Read every single entry in the list, including the very last one.
+                Do not add any aditional text. The result should only be the array enclosed by square bracktes. Do not hallucinate.
                 """},
             ],
         }
@@ -90,10 +91,33 @@ def analyze_receipt(image, date, purchase_id, model, processor):
                 I want you to extract the following Information: 
                 Extract all prices that are written on the right column. If a price repeats do extract the repeated price. Ignore the per amount prices written 
                 in the left column. 
+                Ignore rows where amounts of items bought are given.
                 Do note that the receipt can be skewed or wrinkled. 
                 Put all prices into a python list. Separate them by , and enclose them with square brackets.
-                Also add the Price of Pfand
-                Do not add any aditional text. The result should only be the array. Do not hallucinate.
+                Also add the Price of Pfand or Leergut.
+                Read every single entry in the list, including the very last one.
+                Do not add any aditional text. The result should only be the array enclosed by square brackets. Do not hallucinate.
+                """},
+            ],
+        }
+    ]
+
+
+    message_get_amounts = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "image": image,
+                },
+                {"type": "text", "text": """This image is a receipt from a German supermarket. 
+                Extract the amount of each bought item
+                Each product is one line. One some receipts the line below a product indicates the bought amount, if the amount is higher than 1. On other receipts the amount bought is in the central column.
+                If no amount bought for a specific item is given, the amount is 1. 
+                Ignore any prices.
+                Read every single entry in the list, including the very last one.
+                Return a list of lists of all bought amounts and the product name as a python list each. The first element in the list should be the amount, the second one the product. Enclose it in square brackets
                 """},
             ],
         }
@@ -110,6 +134,15 @@ def analyze_receipt(image, date, purchase_id, model, processor):
 
     list_items= ast.literal_eval(output_get_items)
 
+    output_get_amounts = receipt_to_text(message_get_amounts, model, processor)
+
+    output_get_amounts= output_get_amounts.replace("\n", "")
+    output_get_amounts = output_get_amounts.replace("python", "")
+    output_get_amounts = output_get_amounts.replace("`", "")
+
+    output_amounts = amounts = [item[0] for item in ast.literal_eval(output_get_amounts)]
+
+
     output_get_prices = receipt_to_text(message_get_prices, model, processor)
 
     output_get_prices= output_get_prices.replace("\n", "")
@@ -118,19 +151,14 @@ def analyze_receipt(image, date, purchase_id, model, processor):
 
     output_prices = ast.literal_eval(output_get_prices)
 
+    combined_item_list = [list(item) for item in zip(list_items, output_amounts, output_prices)]
 
-
-    for i in range(len(list_items)):
-        if i < len(output_prices):
-            list_items[i].append(output_prices[i])
-        else:
-            list_items[i].append(-9999)
     return_dict = {}
 
     return_dict["date"] = date
     return_dict["purchase_id"] = purchase_id
     return_dict["shop"] = output_get_supermarket
-    return_dict["items"] = list_items
+    return_dict["items"] = combined_item_list
 
     return return_dict
 

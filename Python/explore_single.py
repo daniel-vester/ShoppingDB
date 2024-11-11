@@ -42,6 +42,3 @@ for i in range(0, len(all_images), batch_size):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
-
-print(result)
