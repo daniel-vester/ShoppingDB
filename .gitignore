@@ -1,0 +1,5 @@
+Archive_Images_Edeka/
+Archive_Images_REWE/
+Archive_Images_Penny/
+Images/*
+!Images/.gitignore
